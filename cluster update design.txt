@@ -1,21 +1,57 @@
-cluster update creates new basic and composite groups and destroys or modifies old ones
 
-the first stage in the process is to determine the new basic group structure
+RIB update
+The RIB is the aggregate of clusters, GroupRib and PrefixRib defined as:
+
+data State = State { clusterList :: ClusterList
+                   , groupRib :: GroupRib
+                   , prefixRib :: PrefixRib
+                   } deriving Show
+
+RIB update applies a new PrefixList to the RIB, assuming that the PrefixList is not already present in GroupRib or PrefixRib.
+The result of ribUpdate impacts all three components of the RIB: zero or more Clusters are destroyed, and at least one new Cluster created.
+The PrefixRib is updated to refernce the new Cluster.
+The GroupRib is updated to replace more partitioned existing CompositeGroups and to add the new CompositeGroup built for the input PrefixList.
+
+The signature of ribUpdate is:
+    ribUpdate :: PrefixList -> State -> State
+
+Cluster update is the first and main stage of ribUpdate, which generates the following outputs: Clusters to delete, new Cluster to insert, new (Composite)Groups to replace and insert.
+Note: Clusters to delete is already known before updateCluster runs.
+The second stage is simply to update ClusterList GroupRib and PrefixRib accordingly.  Note: cluster update does not reference any of ClusterList GroupRib and PrefixRib.
+The signature of updateCluster is: [(Cluster,PrefixList)] -> (Cluster,[CompositeGroup])
+Note: the output [CompositeGroup] update list is a subset of the CompositeGroups in the new Cluster, so a suboptimal strategy is to update every CompositeGroup present in the new Cluster.
+
+
+cluster update runs after getClusterMap, taking the list of clusters and partitioned prefix lists calculated as targetClusters
+cluster update creates new basic and composite groups and determines existing composite groups to be deleted or modified
+ 
+for each cluster, the first stage in the process is to determine the new basic group structure
 the outputs of this stage are: partitioned basic groups, with their new basic group components, and the basic groups which constitute the representation of the new group.  For convenience, the remaining, unaffected basic groups are also returned.
 
-the signature of this function is updateCluster :: [BasicGroup] -> [Prefix] -> ([BasicGroup],[(BasicGroup, BasicGroup, BasicGroup)],BasicGroup)
+the signature of this function is updateBasicGroups :: [BasicGroup] -> [Prefix] -> ([BasicGroup],[(BasicGroup, BasicGroup, BasicGroup)])
 where the input basic grooups are straight out of the respective cluster
-here are some wrappers...
-updateClusters :: ClusterList 
-updateCluster pl
-the first stage output can directly generate the baisc group content for the new cluster
+and the output groups are (unchanged,modified)
+together, the output represents the whole cluster in terms of basic groups
 
 the second stage mutates the composite groups of the cluster
 the affected composite groups are determined by whether their basic group members are in the list of new composites
 the simplest way to expres sthis is as an update function over all of the composite groups
 
-the function over a cpompsoite group looks like this:
+the function over a compsite group looks like this:
 
 updateCompositeGroup :: [(BasicGroup,BasicGroup,BasicGroup)] -> CompositeGroup -> CompositeGroup
+ and the function over all composite groups looks like this:
+updateCompositeGroups :: [(BasicGroup,BasicGroup,BasicGroup)] -> [CompositeGroup] -> [CompositeGroup]
 
+Combining updateBasicGroups and updateCompositeGroups provides a functions over clusters (recalling that a cluster is simply the amalgam of { PrefixList , [ BasicGroup ] , [CompositeGroup] }
 
+so the complete function updateCluster :: PrefixList -> Cluster -> Cluster
+works on Cluster {PrefixList , [ BasicGroup ] , [CompositeGroup] } by dropping Cluster(PrefixList) , applying updateBasicGroups to Cluster([ BasicGroup ]) to generate directly the new cluster [ BasicGroup ], and implicitly the new cluster PrefixList.
+Then updateCompositeGroups generates the needed new composite groups, which is finally augmented by the new CompositeGroup corresponding to the target prefix list.
+
+The final wrapper is applying updateCluster over the ste of clusters which found in the pprefix list search by getClusterMap
+
+The accumulated outputs from updateClusters is a new cluster, which must replace the old clsuter(s), and a new composite group formed from aggregating outputs from updateClsuter and possible an entitely new BasicGroup from the unmatched prefixes out of getClusterMap.
+The intermediate clusters are inexpensive transeint vehicles to carry results through the calculation - the important clausters are the input clusters which must be removed, and the output cluster final.
+
+The final merger looks like this: each new temporary cluster has Composite and Basic members, as well as a prefixlist.  These may be aggregated directly, concatenating like members into one last intermediate cluster.  The final clsuter adds the new Basic group, if not null, to the BasicGroup and PrefixList, and a new CompositeGroup, which is derived from the aggregated selected BasicGroups from updateBasicGroups and the new Basic group.
