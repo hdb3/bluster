@@ -1,0 +1,21 @@
+cluster update creates new basic and composite groups and destroys or modifies old ones
+
+the first stage in the process is to determine the new basic group structure
+the outputs of this stage are: partitioned basic groups, with their new basic group components, and the basic groups which constitute the representation of the new group.  For convenience, the remaining, unaffected basic groups are also returned.
+
+the signature of this function is updateCluster :: [BasicGroup] -> [Prefix] -> ([BasicGroup],[(BasicGroup, BasicGroup, BasicGroup)],BasicGroup)
+where the input basic grooups are straight out of the respective cluster
+here are some wrappers...
+updateClusters :: ClusterList 
+updateCluster pl
+the first stage output can directly generate the baisc group content for the new cluster
+
+the second stage mutates the composite groups of the cluster
+the affected composite groups are determined by whether their basic group members are in the list of new composites
+the simplest way to expres sthis is as an update function over all of the composite groups
+
+the function over a cpompsoite group looks like this:
+
+updateCompositeGroup :: [(BasicGroup,BasicGroup,BasicGroup)] -> CompositeGroup -> CompositeGroup
+
+

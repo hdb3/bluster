@@ -9,3 +9,7 @@ clusters may expand as additional prefixes are added
 this can be treated as creation of a new cluster, in which case the equivalence of a cluster with its prefix element members can be preserved, and the prefix hash becomes a reasonable proxy.  The downside if any is that the prefix rib must be updated for all cluster members
 the alternative is to consider every modifed clsuter as 'new'.  This has the merit of consistency.  It also ensures the transience/locality of clsuter identity
 The solution adopted here is to treat modified clusters as 'new' ones.
+
+identity in data structures
+implicit references provide a default mechanism for storage of persistent data - explicit hash is only needed for containers like IntMap.
+So for example composite groups are simply expressed as lists of basic groups, whilst groups carry hashes to enable indexed access.

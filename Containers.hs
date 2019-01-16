@@ -5,7 +5,7 @@ import Core
 
 type ClusterList = Map.IntMap Cluster
 type PrefixRib = Map.IntMap GroupHash
-type GroupRib = Map.IntMap Group
+type GroupRib = Map.IntMap CompositeGroup
 
 newPrefixRib :: PrefixRib
 newPrefixRib = Map.empty
@@ -16,7 +16,7 @@ insertPrefixRib _ _ = Map.empty
 newGroupRib :: GroupRib
 newGroupRib = Map.empty
 
-insertGroupRib :: (Group,GroupHash) -> GroupRib -> GroupRib
+insertGroupRib :: CompositeGroup -> GroupRib -> GroupRib
 insertGroupRib _ _ = Map.empty
 
 newClusterList :: ClusterList
