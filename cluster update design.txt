@@ -66,7 +66,8 @@ The ClusterList update installs exactly one new cluster, indexed by its hash, an
 updateGroupRib is a relatively simple operation - overwriting any old values with new ones, which is the sematics of IntMap.insert
 
     prefixRib = updatePrefixRib  (prefixRib s)
-updatePrefixRib :: PrefixList -> Cluster -> PrefixRib -> PrefixRib
+updatePrefixRib :: Cluster -> PrefixRib -> PrefixRib
 
 updatePrefixRib is also simple, like updateGroupRib, but it inserts a common value, the cluster hash, into the PrefixRib (this could simply be the Cluster iteself)
+Note: the target prefix list is defined by the cluster, hence not an explicit parameter.
 

@@ -31,8 +31,14 @@ instance Hashable CompositeGroup
 instance Hashable BasicGroup
 instance Hashable Hash
 
+prefixHash :: Prefix -> Hash
+prefixHash = Hash . fromPrefix
+
+prefixListHash :: PrefixList -> Hash
+prefixListHash pl = Hash $ Data.Hashable.hash $ sort pl
+
 mkBasicGroup :: PrefixList -> BasicGroup
-mkBasicGroup pl = BasicGroup (Hash $ Data.Hashable.hash $ sort pl) (sort pl)
+mkBasicGroup pl = BasicGroup (prefixListHash pl) (sort pl)
 
 mkCompositeGroup :: [BasicGroup] -> CompositeGroup
 mkCompositeGroup bgs = CompositeGroup (Hash $ Data.Hashable.hash (sort bgs)) (sort bgs)

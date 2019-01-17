@@ -4,6 +4,9 @@ import Data.List(foldl')
 
 import Core
 
+lookup :: Hash -> Map.IntMap a -> Maybe a
+lookup = Map.lookup . fromHash
+
 type ClusterList = Map.IntMap Cluster
 type PrefixRib = Map.IntMap Hash
 type GroupRib = Map.IntMap CompositeGroup
@@ -43,6 +46,6 @@ updateClusterList newCluster markedClusters oldClusterList = Map.insert (fromHas
 updateGroupRib :: [CompositeGroup] -> GroupRib -> GroupRib 
 updateGroupRib cgs oldRib = foldl' (\rib cg -> Map.insert (fromHash $ cgHash cg) cg rib ) oldRib cgs
 
-updatePrefixRib :: PrefixList -> Cluster -> PrefixRib -> PrefixRib
-updatePrefixRib pfxs cl oldRib = foldl' (\rib pfx -> Map.insert (fromPrefix pfx) (clHash cl) rib ) oldRib pfxs
+updatePrefixRib :: Cluster -> PrefixRib -> PrefixRib
+updatePrefixRib cl oldRib = foldl' (\rib pfx -> Map.insert (fromPrefix pfx) (clHash cl) rib ) oldRib (clPrefixes cl)
 
