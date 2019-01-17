@@ -55,3 +55,18 @@ The accumulated outputs from updateClusters is a new cluster, which must replace
 The intermediate clusters are inexpensive transeint vehicles to carry results through the calculation - the important clausters are the input clusters which must be removed, and the output cluster final.
 
 The final merger looks like this: each new temporary cluster has Composite and Basic members, as well as a prefixlist.  These may be aggregated directly, concatenating like members into one last intermediate cluster.  The final clsuter adds the new Basic group, if not null, to the BasicGroup and PrefixList, and a new CompositeGroup, which is derived from the aggregated selected BasicGroups from updateBasicGroups and the new Basic group.
+
+RIB update primitives
+
+The ClusterList update installs exactly one new cluster, indexed by its hash, and removes zero or more old clusters.  The passed in values are actual clusters, the purpose of the list is secondary - the core functions do not require a lookup based container - but without it the only way of viewing all clusters is by passing over the full prefix table - which could be expensive when it comes to reduing the set using an equality test.  However, as an experiment I use this appraoch first....
+
+    updateClusterList :: Cluster -> [Cluster] -> ClusterList -> ClusterList
+
+    updateGroupRib :: [CompositeGroup] -> GroupRib -> GroupRib
+updateGroupRib is a relatively simple operation - overwriting any old values with new ones, which is the sematics of IntMap.insert
+
+    prefixRib = updatePrefixRib  (prefixRib s)
+updatePrefixRib :: PrefixList -> Cluster -> PrefixRib -> PrefixRib
+
+updatePrefixRib is also simple, like updateGroupRib, but it inserts a common value, the cluster hash, into the PrefixRib (this could simply be the Cluster iteself)
+

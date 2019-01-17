@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances,DeriveGeneric #-}
 module Core where
 
-import Data.Word
+--import Data.Word
 import Data.Hashable 
 import Data.List(sort)
 import GHC.Generics(Generic)
@@ -19,7 +19,7 @@ data Cluster = Cluster { clHash :: Hash
 data BasicGroup = BasicGroup { bgHash :: Hash , basicPrefixes :: PrefixList } deriving (Show,Ord,Generic)
 
 instance Eq BasicGroup where
-    (==) bg1 bg2 = (bgHash bg1 == bgHash bg2)
+    (==) bg1 bg2 = bgHash bg1 == bgHash bg2
 
 data CompositeGroup = CompositeGroup { cgHash :: Hash , compositeGroups :: [ BasicGroup ] } deriving (Show,Generic)
 
@@ -40,6 +40,7 @@ mkCompositeGroup bgs = CompositeGroup (Hash $ Data.Hashable.hash (sort bgs)) (so
 mkCluster :: PrefixList -> [CompositeGroup] -> [ BasicGroup ] -> Cluster
 mkCluster a b c = Cluster (Hash $ Data.Hashable.hash (a,b,c)) a b c
 
+emptyCluster :: Cluster
 emptyCluster = mkCluster [] [] [] 
 
 mergeClusters :: [Cluster] -> Cluster
