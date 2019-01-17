@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances,DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings,FlexibleInstances,DeriveGeneric #-}
 module Core where
 
 --import Data.Word
@@ -6,7 +6,13 @@ import Data.Hashable
 import Data.List(sort)
 import GHC.Generics(Generic)
 
-newtype Prefix = Prefix { fromPrefix :: Int } deriving (Eq,Ord,Show,Generic)
+newtype Prefix = Prefix { fromPrefix :: Int } deriving (Eq,Ord,Generic)
+instance Show Prefix where
+    show = show . fromPrefix
+
+instance Num Prefix where
+    fromInteger x = Prefix $ fromIntegral x
+
 newtype Hash = Hash { fromHash :: Int } deriving (Eq,Ord,Show,Generic)
 type PrefixList = [Prefix]
 
@@ -16,12 +22,16 @@ data Cluster = Cluster { clHash :: Hash
                        , clBasicGroups :: [ BasicGroup ]
                        } deriving Show
 
-data BasicGroup = BasicGroup { bgHash :: Hash , basicPrefixes :: PrefixList } deriving (Show,Ord,Generic)
+data BasicGroup = BasicGroup { bgHash :: Hash , basicPrefixes :: PrefixList } deriving (Ord,Generic)
+instance Show BasicGroup where
+    show = show . basicPrefixes
 
 instance Eq BasicGroup where
     (==) bg1 bg2 = bgHash bg1 == bgHash bg2
 
-data CompositeGroup = CompositeGroup { cgHash :: Hash , compositeGroups :: [ BasicGroup ] } deriving (Show,Generic)
+data CompositeGroup = CompositeGroup { cgHash :: Hash , compositeGroups :: [ BasicGroup ] } deriving Generic
+instance Show CompositeGroup where
+    show = show . compositeGroups
 
 instance {-# INCOHERENT #-} Hashable [Prefix] where
     hashWithSalt s pl = hashWithSalt s $ sort $ map fromPrefix pl

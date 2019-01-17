@@ -5,6 +5,7 @@ import Data.List(sort,nub,foldl')
 
 import Core
 import Containers
+import BasicOperations
 
 data State = State { clusterList :: ClusterList
                    , groupRib :: GroupRib
@@ -58,11 +59,11 @@ ribUpdate pl s = if present then error "trying to insert an existing group" else
     updateCluster _ = (emptyCluster,emptyCompositeGroup) -- todo
         where
 
-        updateBasicGroups :: [BasicGroup] -> [Prefix] -> ([BasicGroup],[(BasicGroup, BasicGroup, BasicGroup)])
-        updateBasicGroups _ _ = ([],[]) -- todo
+        --updateBasicGroups :: [BasicGroup] -> [Prefix] -> ([BasicGroup],[(BasicGroup, BasicGroup, BasicGroup)])
+        --updateBasicGroups _ _ = ([],[]) -- todo
 
-        updateCompositeGroup :: [(BasicGroup,BasicGroup,BasicGroup)] -> CompositeGroup -> CompositeGroup
-        updateCompositeGroup _ _ = mkCompositeGroup [] -- todo
+        --updateCompositeGroup :: [(BasicGroup,BasicGroup,BasicGroup)] -> CompositeGroup -> CompositeGroup
+        --updateCompositeGroup _ _ = mkCompositeGroup [] -- todo
 
         updateCompositeGroups :: [(BasicGroup,BasicGroup,BasicGroup)] -> [CompositeGroup] -> [CompositeGroup]
         updateCompositeGroups updates = map (updateCompositeGroup updates)
