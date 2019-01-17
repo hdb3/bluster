@@ -51,3 +51,9 @@ emptyCluster = mkCluster [] [] []
 
 mergeClusters :: [Cluster] -> Cluster
 mergeClusters = foldl (\(Cluster _ acca accb accc) (Cluster _ xa xb xc) -> (mkCluster (acca++xa) (accb++xb) (accc++xc))) emptyCluster
+
+mergeCompositeGroups :: [CompositeGroup] -> CompositeGroup
+mergeCompositeGroups = mkCompositeGroup . concatMap compositeGroups
+
+emptyCompositeGroup :: CompositeGroup
+emptyCompositeGroup = mkCompositeGroup [] 

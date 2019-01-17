@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 module Operations where
 import Data.Maybe(isJust,fromJust)
-import Data.List(sort,nub)
+import Data.List(sort,nub,foldl')
 
 import Core
 import Containers
@@ -11,12 +11,12 @@ data State = State { clusterList :: ClusterList
                    , prefixRib :: PrefixRib
                    } deriving Show
 
-newState = State newClusterList newGroupRib newPrefixRib
+newState = State emptyClusterList emptyGroupRib emptyPrefixRib
 
 ribUpdate :: PrefixList -> State -> State
 --insertGroup _ a = a
 --ribUpdate pl s = if present then s else State{..} where
-ribUpdate pl s = if present then (error "trying to insert an existing group") else State newClusterList newGroupRib newPrefixRib
+ribUpdate pl s = if present then error "trying to insert an existing group" else State newClusterList newGroupRib newPrefixRib
     where
 
     -- sanity check only .....
@@ -31,7 +31,7 @@ ribUpdate pl s = if present then (error "trying to insert an existing group") el
         where
         --r = map (\pfx -> (pfx,Map.lookup pfx pr)) pl
         --(matched,unmatched) = foldl (\(m,u) t -> if isNothing (snd t) then (m,t:u) else (t:m,u)) ([],[]) r
-        (matched,unmatched) = foldl (\(m,u) pfx -> maybe (m,pfx:u)
+        (matched,unmatched) = foldl' (\(m,u) pfx -> maybe (m,pfx:u)
                                                          (\g -> ((g,pfx):m,u))
                                                          (Containers.lookup (prefixHash pfx) pr )
                                     )
@@ -53,8 +53,9 @@ ribUpdate pl s = if present then (error "trying to insert an existing group") el
 
     -- The signature of clusterUpdate is: [(Cluster,PrefixList)] -> (Cluster,[CompositeGroup])
     -- Note: the output [CompositeGroup] update list is a subset of the CompositeGroups in the new Cluster, so a suboptimal strategy is to update every CompositeGroup present in the new Cluster.
-    updateCluster :: (Cluster,PrefixList) -> (Cluster,[CompositeGroup])
-    updateCluster _ = (emptyCluster,[]) -- todo
+
+    updateCluster :: (Cluster,PrefixList) -> (Cluster,CompositeGroup)
+    updateCluster _ = (emptyCluster,emptyCompositeGroup) -- todo
         where
 
         updateBasicGroups :: [BasicGroup] -> [Prefix] -> ([BasicGroup],[(BasicGroup, BasicGroup, BasicGroup)])
@@ -66,22 +67,25 @@ ribUpdate pl s = if present then (error "trying to insert an existing group") el
         updateCompositeGroups :: [(BasicGroup,BasicGroup,BasicGroup)] -> [CompositeGroup] -> [CompositeGroup]
         updateCompositeGroups updates = map (updateCompositeGroup updates)
 
-    updateClusters :: [(Cluster,PrefixList)] -> (Cluster,[CompositeGroup])
-    updateClusters ax = (mergeClusters cls, concat cgs) where
-        (cls,cgs) = foldl (\(accb,acca) (a,b) -> (a:acca, b:accb)) ([],[]) ax
+    updateClusters :: [(Cluster,PrefixList)] -> (Cluster,CompositeGroup)
+    updateClusters ax = (mergeClusters cls, mergeCompositeGroups cgs) where
+        (cls,cgs) = mergeUpdates $ map updateCluster ax
+
+        mergeUpdates :: [(Cluster,CompositeGroup)] -> ([Cluster],[CompositeGroup])
+        mergeUpdates = foldl' (\(acca,accb) (a,b) -> (a:acca, b:accb)) ([],[])
 
     -- this marks the completeion of the first stage
-    (tmpCluster,newCompositeGroups) = updateClusters targets
+    (tmpCluster,newCompositeGroup) = updateClusters targets
     markedClusters = map fst targets
     newBasicGroup = mkBasicGroup unmatchedPrefixList
 
     -- build the new cluster
-    newCluster = Cluster (unmatchedPrefixList ++ clPrefixes tmpCluster) (newCompositeGroup : clCompositeGroups tmpCluster) (newBasicGroup : clBasicGroups tmpCluster)
+    newCluster = mkCluster (unmatchedPrefixList ++ clPrefixes tmpCluster) (newCompositeGroup : clCompositeGroups tmpCluster) (newBasicGroup : clBasicGroups tmpCluster)
 
     -- now update the RIB state
     newClusterList = updateClusterList newCluster markedClusters (clusterList s)
-    newGroupRib = updateGroupRib newCompositeGroups (groupRib s)
-    newPrefixRib = updatePrefixRib newCluster (prefixRib s)
+    newGroupRib    = updateGroupRib (clCompositeGroups newCluster) (groupRib s)
+    newPrefixRib   = updatePrefixRib newCluster (prefixRib s)
 
 displayState :: State -> String
 displayState State{..} = "clusters: " ++ show (length clusterList)

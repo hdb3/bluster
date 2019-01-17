@@ -11,20 +11,20 @@ type ClusterList = Map.IntMap Cluster
 type PrefixRib = Map.IntMap Hash
 type GroupRib = Map.IntMap CompositeGroup
 
-newPrefixRib :: PrefixRib
-newPrefixRib = Map.empty
+emptyPrefixRib :: PrefixRib
+emptyPrefixRib = Map.empty
 
 insertPrefixRib :: (Prefix,Hash) -> PrefixRib -> PrefixRib
 insertPrefixRib _ _ = Map.empty
 
-newGroupRib :: GroupRib
-newGroupRib = Map.empty
+emptyGroupRib :: GroupRib
+emptyGroupRib = Map.empty
 
 insertGroupRib :: CompositeGroup -> GroupRib -> GroupRib
 insertGroupRib _ _ = Map.empty
 
-newClusterList :: ClusterList
-newClusterList = Map.empty
+emptyClusterList :: ClusterList
+emptyClusterList = Map.empty
 
 insertClusterList :: Cluster -> ClusterList -> ClusterList
 insertClusterList _ _ = Map.empty
