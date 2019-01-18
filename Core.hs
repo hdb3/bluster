@@ -10,8 +10,14 @@ newtype Prefix = Prefix { fromPrefix :: Int } deriving (Eq,Ord,Generic)
 instance Show Prefix where
     show = show . fromPrefix
 
+-- this instance is just to allow creating prefixes from literals
 instance Num Prefix where
     fromInteger x = Prefix $ fromIntegral x
+    (+) = error "You cannot add prefixes!!"
+    (-) = error "You cannot subtract prefixes!!"
+    (*) = error "You cannot * prefixes!!"
+    abs = error "You cannot abs prefixes!!"
+    signum = error "You cannot signum prefixes!!"
 
 newtype Hash = Hash { fromHash :: Int } deriving (Eq,Ord,Show,Generic)
 type PrefixList = [Prefix]
