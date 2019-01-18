@@ -17,6 +17,7 @@ main = do
 
 try pfxs = do
     let s = mapRu newState pfxs
-    print pfxs
+    putStrLn ""
+    putStrLn $ "input prefix groups: " ++ show pfxs
     putStrLn $ displayState s
     print $ clusters s

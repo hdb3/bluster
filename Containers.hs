@@ -35,13 +35,6 @@ insertClusterList _ _ = Map.empty
 deleteClusterList :: Hash -> ClusterList
 deleteClusterList _ = Map.empty
 
-{-
-updateClusterList newCluster markedClusters oldClusterList = Map.insert (fromHash $ clHash newCluster)  newCluster tmpClusterList
-    where
-    tmpClusterList :: ClusterList
-    tmpClusterList = foldl' (\cl c -> Map.delete (fromHash $ clHash c) cl ) oldClusterList markedClusters
--}
-
 updateClusterList :: Cluster -> [Cluster] -> ClusterList -> ClusterList
 updateClusterList newCluster markedClusters oldClusterList = Map.insert (fromHash $ clHash newCluster) newCluster
                                                             $ foldl' (\cl c -> Map.delete (fromHash $ clHash c) cl ) oldClusterList markedClusters

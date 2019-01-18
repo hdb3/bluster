@@ -28,7 +28,7 @@ data Cluster = Cluster { clHash :: Hash
                        , clBasicGroups :: [ BasicGroup ]
                        }
 instance Show Cluster where
-    show (Cluster _ a b) = "Cluster: " ++ show a ++ " // " ++ show b
+    show (Cluster _ cgs bgs) = "Cluster: (composite) " ++ show cgs ++ " // (basic) " ++ show bgs
 
 clusterPrefixes :: Cluster -> [Prefix]
 clusterPrefixes = concatMap basicPrefixes . clBasicGroups

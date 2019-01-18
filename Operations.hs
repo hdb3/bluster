@@ -27,50 +27,10 @@ ribUpdate pl0 s = if present then error "trying to insert an existing group" els
 
     (clusterMap,unmatchedPrefixList) = getClusterMap pl0 (prefixRib s)
 
-    getClusterMap :: PrefixList -> PrefixRib -> ( [(Hash,PrefixList)] , PrefixList )
-    -- first value returns prefixes mapped already, second value is unmapped prefixes
-    getClusterMap pl pr = (rollUp matched, sort unmatched)
-        where
-        (matched,unmatched) = foldl' (\(m,u) pfx -> maybe (m,pfx:u)
-                                                         (\g -> ((g,pfx):m,u))
-                                                         (Containers.lookup (prefixHash pfx) pr )
-                                    )
-                                    ([],[])
-                                    pl
-        rollUp l = map (\p -> (p, map snd (filter ((p ==) . fst) l))) (nub $ map fst l)
-    -- we must apply the new prefix lists for each cluster, accumulate the result, add in the new basic block to, and forn a new cluster
-    -- the per cluster operation is updateCluster
-    -- updateCluster returns the, possibly updated, list of groups in the cluster - this is used not only to form a new cluster
-    -- but also to update entries in the group rib (new basic groups, replace some old basic groups with composite)
-    -- finally, we require the list of basic subgroups which will populate the new group which represents the target
-    -- the rrturn value is two lists of groups, which together define both the group rib update and the new cluster
-    -- the second list contributes to the new group
-
-    -- now we have the hashes for the affected clusters matched up with the prefixes involved
-    -- look up the actual cluster values in clusterList and pair up with their update sets:
-    targets :: [(Cluster,PrefixList)]
-    targets = map (\(hash,pfxs) -> (fromJust $ Containers.lookup hash (clusterList s),pfxs)) clusterMap
-
-    -- The signature of clusterUpdate is: [(Cluster,PrefixList)] -> (Cluster,[CompositeGroup])
-    -- Note: the output [CompositeGroup] update list is a subset of the CompositeGroups in the new Cluster, so a suboptimal strategy is to update every CompositeGroup present in the new Cluster.
-
-    updateCluster :: (Cluster,PrefixList) -> (Cluster,CompositeGroup)
-    updateCluster (Cluster _ cgs bgs,pl) = (mkCluster newCompositeGroups newBasicGroups , targetCompositeGroup)
-        where
-        (newBasicGroups, targetCompositeGroup, editList) = updateBasicGroups bgs pl
-        newCompositeGroups = updateCompositeGroups editList cgs
-        
-    updateClusters :: [(Cluster,PrefixList)] -> (Cluster,CompositeGroup)
-    updateClusters ax = (mergeClusters cls, mergeCompositeGroups cgs) where
-        (cls,cgs) = mergeUpdates $ map updateCluster ax
-
-        mergeUpdates :: [(Cluster,CompositeGroup)] -> ([Cluster],[CompositeGroup])
-        mergeUpdates = foldl' (\(acca,accb) (a,b) -> (a:acca, b:accb)) ([],[])
-
-    -- this marks the completeion of the first stage
-    (tmpCluster,newCompositeGroup) = updateClusters targets
-    markedClusters = map fst targets
+    (tmpCluster,tmpCompositeGroup) = updateClusters clusterMap
+    markedClusters = map fst clusterMap
     newBasicGroup = mkBasicGroup unmatchedPrefixList
+    newCompositeGroup = mergeCompositeGroups [tmpCompositeGroup, mkCompositeGroup [newBasicGroup]]
 
     -- build the new cluster
     newCluster = mkCluster (newCompositeGroup : clCompositeGroups tmpCluster) (newBasicGroup : clBasicGroups tmpCluster)
@@ -79,6 +39,33 @@ ribUpdate pl0 s = if present then error "trying to insert an existing group" els
     newClusterList = updateClusterList newCluster markedClusters (clusterList s)
     newGroupRib    = updateGroupRib (clCompositeGroups newCluster) (groupRib s)
     newPrefixRib   = updatePrefixRib newCluster (prefixRib s)
+
+    getClusterMap :: PrefixList -> PrefixRib -> ( [(Cluster,PrefixList)] , PrefixList )
+    getClusterMap pl pr = (clusters, sort unmatched)
+        where
+        clusters = getClusters $ rollUp matched
+        getClusters :: [(Hash,PrefixList)] -> [(Cluster,PrefixList)]
+        getClusters = map (\(hash,pfxs) -> (fromJust $ Containers.lookup hash (clusterList s),pfxs))
+        rollUp l = map (\p -> (p, map snd (filter ((p ==) . fst) l))) (nub $ map fst l)
+        (matched,unmatched) = foldl' (\(m,u) pfx -> maybe (m,pfx:u)
+                                                         (\g -> ((g,pfx):m,u))
+                                                         (Containers.lookup (prefixHash pfx) pr )
+                                    )
+                                    ([],[])
+                                    pl
+
+    updateClusters :: [(Cluster,PrefixList)] -> (Cluster,CompositeGroup)
+    updateClusters ax = (mergeClusters cls, mergeCompositeGroups cgs) where
+        (cls,cgs) = mergeUpdates $ map updateCluster ax
+
+        mergeUpdates :: [(Cluster,CompositeGroup)] -> ([Cluster],[CompositeGroup])
+        mergeUpdates = foldl' (\(acca,accb) (a,b) -> (a:acca, b:accb)) ([],[])
+
+        updateCluster :: (Cluster,PrefixList) -> (Cluster,CompositeGroup)
+        updateCluster (Cluster _ cgs bgs,pl) = (mkCluster newCompositeGroups newBasicGroups , targetCompositeGroup)
+            where
+            (newBasicGroups, targetCompositeGroup, editList) = updateBasicGroups bgs pl
+            newCompositeGroups = updateCompositeGroups editList cgs
 
 displayState :: State -> String
 displayState State{..} = "clusters: " ++ show (length clusterList)
