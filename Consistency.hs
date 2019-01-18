@@ -1,25 +1,10 @@
-{-# LANGUAGE RecordWildCards #-}
 module Consistency where
 import Data.Maybe(catMaybes)
-import Data.List(sort,nub,foldl',(\\))
+import Data.List(sort,(\\))
 
 import Core
 import Containers
 import Operations
-
-{-
-data State = State { clusterList :: ClusterList
-                   , groupRib :: GroupRib
-                   , prefixRib :: PrefixRib
-                   } deriving Show
-
-clusters :: State -> [ Cluster ]
-clusters = elems . clusterList
-
-groups :: State -> [ CompositeGroup ]
-groups = elems . groupRib
-
--}
 
 consistency :: State -> Maybe String
 consistency s = if null (catMaybes results) then Nothing else Just $ unlines (catMaybes results)
@@ -47,4 +32,3 @@ checkGroups st = if cGroups == ribGroups then Nothing else Just $
     where
     cGroups = sort $ concatMap clCompositeGroups $ elems (clusterList st)
     ribGroups = sort $ elems $ groupRib st
-

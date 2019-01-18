@@ -1,25 +1,10 @@
 {-# LANGUAGE RecordWildCards #-}
 module Analysis where
-import Data.Maybe(catMaybes)
-import Data.List(sort,group,foldl',(\\))
+import Data.List(sort,group)
 
 import Core
 import Containers
 import Operations
-
-{-
-data State = State { clusterList :: ClusterList
-                   , groupRib :: GroupRib
-                   , prefixRib :: PrefixRib
-                   } deriving Show
-
-clusters :: State -> [ Cluster ]
-clusters = elems . clusterList
-
-groups :: State -> [ CompositeGroup ]
-groups = elems . groupRib
-
--}
 
 analysis :: State -> String
 analysis s = unlines results
