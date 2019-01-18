@@ -47,5 +47,5 @@ updateGroupRib :: [CompositeGroup] -> GroupRib -> GroupRib
 updateGroupRib cgs oldRib = foldl' (\rib cg -> Map.insert (fromHash $ cgHash cg) cg rib ) oldRib cgs
 
 updatePrefixRib :: Cluster -> PrefixRib -> PrefixRib
-updatePrefixRib cl oldRib = foldl' (\rib pfx -> Map.insert (fromPrefix pfx) (clHash cl) rib ) oldRib (clPrefixes cl)
+updatePrefixRib cl oldRib = foldl' (\rib pfx -> Map.insert (fromPrefix pfx) (clHash cl) rib ) oldRib (clusterPrefixes cl)
 
