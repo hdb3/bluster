@@ -16,8 +16,6 @@ newState :: State
 newState = State emptyClusterList emptyGroupRib emptyPrefixRib
 
 ribUpdate :: PrefixList -> State -> State
---insertGroup _ a = a
---ribUpdate pl s = if present then s else State{..} where
 ribUpdate pl0 s = if present then error "trying to insert an existing group" else State newClusterList newGroupRib newPrefixRib
     where
 
@@ -25,14 +23,11 @@ ribUpdate pl0 s = if present then error "trying to insert an existing group" els
     present = isJust (Containers.lookup (prefixListHash pl0) (groupRib s) )
 
     (clusterMap,unmatchedPrefixList) = getClusterMap pl0 (prefixRib s)
-    -- clusterMap = getClusterMap pl prefixes -- using RecordWildCards
 
     getClusterMap :: PrefixList -> PrefixRib -> ( [(Hash,PrefixList)] , PrefixList )
     -- first value returns prefixes mapped already, second value is unmapped prefixes
     getClusterMap pl pr = (rollUp matched, sort unmatched)
         where
-        --r = map (\pfx -> (pfx,Map.lookup pfx pr)) pl
-        --(matched,unmatched) = foldl (\(m,u) t -> if isNothing (snd t) then (m,t:u) else (t:m,u)) ([],[]) r
         (matched,unmatched) = foldl' (\(m,u) pfx -> maybe (m,pfx:u)
                                                          (\g -> ((g,pfx):m,u))
                                                          (Containers.lookup (prefixHash pfx) pr )
@@ -57,14 +52,11 @@ ribUpdate pl0 s = if present then error "trying to insert an existing group" els
     -- Note: the output [CompositeGroup] update list is a subset of the CompositeGroups in the new Cluster, so a suboptimal strategy is to update every CompositeGroup present in the new Cluster.
 
     updateCluster :: (Cluster,PrefixList) -> (Cluster,CompositeGroup)
-    updateCluster (Cluster _ cgs bgs,pl) = (mkCluster newCompositeGroups newBasicGroups , targetCompositeGroup) -- todo
+    updateCluster (Cluster _ cgs bgs,pl) = (mkCluster newCompositeGroups newBasicGroups , targetCompositeGroup)
         where
         (newBasicGroups, targetCompositeGroup, editList) = updateBasicGroups bgs pl
         newCompositeGroups = updateCompositeGroups editList cgs
         
-        --updateCompositeGroups :: [(BasicGroup,BasicGroup,BasicGroup)] -> [CompositeGroup] -> [CompositeGroup]
-        --updateCompositeGroups updates = map (updateCompositeGroup updates)
-
     updateClusters :: [(Cluster,PrefixList)] -> (Cluster,CompositeGroup)
     updateClusters ax = (mergeClusters cls, mergeCompositeGroups cgs) where
         (cls,cgs) = mergeUpdates $ map updateCluster ax

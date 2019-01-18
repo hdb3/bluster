@@ -26,7 +26,9 @@ data Cluster = Cluster { clHash :: Hash
                        --, clPrefixes :: PrefixList -- redundant since the prefix list is also contained in the Basic groups
                        , clCompositeGroups :: [CompositeGroup]
                        , clBasicGroups :: [ BasicGroup ]
-                       } deriving Show
+                       }
+instance Show Cluster where
+    show (Cluster _ a b) = "Cluster: " ++ show a ++ " // " ++ show b
 
 clusterPrefixes :: Cluster -> [Prefix]
 clusterPrefixes = concatMap basicPrefixes . clBasicGroups
