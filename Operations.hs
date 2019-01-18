@@ -12,18 +12,19 @@ data State = State { clusterList :: ClusterList
                    , prefixRib :: PrefixRib
                    } deriving Show
 
+newState :: State
 newState = State emptyClusterList emptyGroupRib emptyPrefixRib
 
 ribUpdate :: PrefixList -> State -> State
 --insertGroup _ a = a
 --ribUpdate pl s = if present then s else State{..} where
-ribUpdate pl s = if present then error "trying to insert an existing group" else State newClusterList newGroupRib newPrefixRib
+ribUpdate pl0 s = if present then error "trying to insert an existing group" else State newClusterList newGroupRib newPrefixRib
     where
 
     -- sanity check only .....
-    present = isJust (Containers.lookup (prefixListHash pl) (groupRib s) )
+    present = isJust (Containers.lookup (prefixListHash pl0) (groupRib s) )
 
-    (clusterMap,unmatchedPrefixList) = getClusterMap pl (prefixRib s)
+    (clusterMap,unmatchedPrefixList) = getClusterMap pl0 (prefixRib s)
     -- clusterMap = getClusterMap pl prefixes -- using RecordWildCards
 
     getClusterMap :: PrefixList -> PrefixRib -> ( [(Hash,PrefixList)] , PrefixList )
@@ -56,17 +57,13 @@ ribUpdate pl s = if present then error "trying to insert an existing group" else
     -- Note: the output [CompositeGroup] update list is a subset of the CompositeGroups in the new Cluster, so a suboptimal strategy is to update every CompositeGroup present in the new Cluster.
 
     updateCluster :: (Cluster,PrefixList) -> (Cluster,CompositeGroup)
-    updateCluster _ = (emptyCluster,emptyCompositeGroup) -- todo
+    updateCluster (Cluster _ cgs bgs,pl) = (mkCluster newCompositeGroups newBasicGroups , targetCompositeGroup) -- todo
         where
-
-        --updateBasicGroups :: [BasicGroup] -> [Prefix] -> ([BasicGroup],[(BasicGroup, BasicGroup, BasicGroup)])
-        --updateBasicGroups _ _ = ([],[]) -- todo
-
-        --updateCompositeGroup :: [(BasicGroup,BasicGroup,BasicGroup)] -> CompositeGroup -> CompositeGroup
-        --updateCompositeGroup _ _ = mkCompositeGroup [] -- todo
-
-        updateCompositeGroups :: [(BasicGroup,BasicGroup,BasicGroup)] -> [CompositeGroup] -> [CompositeGroup]
-        updateCompositeGroups updates = map (updateCompositeGroup updates)
+        (newBasicGroups, targetCompositeGroup, editList) = updateBasicGroups bgs pl
+        newCompositeGroups = updateCompositeGroups editList cgs
+        
+        --updateCompositeGroups :: [(BasicGroup,BasicGroup,BasicGroup)] -> [CompositeGroup] -> [CompositeGroup]
+        --updateCompositeGroups updates = map (updateCompositeGroup updates)
 
     updateClusters :: [(Cluster,PrefixList)] -> (Cluster,CompositeGroup)
     updateClusters ax = (mergeClusters cls, mergeCompositeGroups cgs) where
@@ -81,7 +78,7 @@ ribUpdate pl s = if present then error "trying to insert an existing group" else
     newBasicGroup = mkBasicGroup unmatchedPrefixList
 
     -- build the new cluster
-    newCluster = mkCluster (unmatchedPrefixList ++ clPrefixes tmpCluster) (newCompositeGroup : clCompositeGroups tmpCluster) (newBasicGroup : clBasicGroups tmpCluster)
+    newCluster = mkCluster (newCompositeGroup : clCompositeGroups tmpCluster) (newBasicGroup : clBasicGroups tmpCluster)
 
     -- now update the RIB state
     newClusterList = updateClusterList newCluster markedClusters (clusterList s)
