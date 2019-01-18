@@ -14,7 +14,7 @@ display (newGroups , cg , editList) = do
     putStrLn $ "composite group: " ++ show cg
     putStrLn $ "edit list:       " ++ show editList
 
-main = do
+main' = do
     putStrLn "BasicOperations-test"
     
     -- note - the only valid inputs are those in which the prefix list and basic groups are both not null
@@ -46,3 +46,15 @@ main = do
     putStrLn "1,2,3,4  5,6 7 : 7,2,3,5"
     display $ updateBasicGroups (map mkBasicGroup [[1,2,3,4],[5,6],[7]]) [7,2,3,5]
     putStrLn ""
+
+main = do
+    putStrLn "BasicOperations-test - updateCompositeGroup"
+    print $ updateCompositeGroup [] ( mkCompositeGroup $ map mkBasicGroup [[1,2],[3,4]] )
+    print $ updateCompositeGroup [(mkBasicGroup [1,2], mkBasicGroup [1], mkBasicGroup [2])] ( mkCompositeGroup $ map mkBasicGroup [[1,2],[3,4]] )
+    print $ updateCompositeGroup [(mkBasicGroup [2,1], mkBasicGroup [1], mkBasicGroup [2])] ( mkCompositeGroup $ map mkBasicGroup [[1,2],[3,4]] )
+    print $ updateCompositeGroup [(mkBasicGroup [2,1], mkBasicGroup [1], mkBasicGroup [2])] ( mkCompositeGroup $ map mkBasicGroup [[4,3],[2,1]] )
+    print $ updateCompositeGroup [(mkBasicGroup [2,1], mkBasicGroup [1], mkBasicGroup [2])] ( mkCompositeGroup $ map mkBasicGroup [[4,2],[3,1]] )
+
+    print $ updateCompositeGroup [(mkBasicGroup [1,2], mkBasicGroup [1], mkBasicGroup [2])
+                                 ,(mkBasicGroup [3,4,5], mkBasicGroup [3], mkBasicGroup [4,5])]
+                                 ( mkCompositeGroup $ map mkBasicGroup [[1,2],[3,4,5]] )
