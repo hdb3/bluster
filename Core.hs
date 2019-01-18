@@ -40,7 +40,7 @@ instance Show BasicGroup where
 instance Eq BasicGroup where
     (==) bg1 bg2 = bgHash bg1 == bgHash bg2
 
-data CompositeGroup = CompositeGroup { cgHash :: Hash , compositeGroups :: [ BasicGroup ] } deriving Generic
+data CompositeGroup = CompositeGroup { cgHash :: Hash , compositeGroups :: [ BasicGroup ] } deriving (Ord,Eq,Generic)
 instance Show CompositeGroup where
     show = show . compositeGroups
 

@@ -8,6 +8,7 @@ lookup :: Hash -> Map.IntMap a -> Maybe a
 lookup = Map.lookup . fromHash
 
 elems = Map.elems
+keys = Map.keys
 --fromList = Map.fromList
 
 type ClusterList = Map.IntMap Cluster
