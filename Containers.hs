@@ -39,6 +39,9 @@ updateClusterList :: Cluster -> [Cluster] -> ClusterList -> ClusterList
 updateClusterList newCluster markedClusters oldClusterList = Map.insert (fromHash $ clHash newCluster) newCluster
                                                             $ foldl' (\cl c -> Map.delete (fromHash $ clHash c) cl ) oldClusterList markedClusters
 
+-- IMPORTANT NOTE!!! : - the group rib is indexed by the hash over the underlying prefix list
+--                   : as well as being vital for utility, this ensures that updated (split) groups overwrite older ones
+--                   | this prpoerty is maintained as long as the function cgHash has that property
 updateGroupRib :: [CompositeGroup] -> GroupRib -> GroupRib 
 updateGroupRib cgs oldRib = foldl' (\rib cg -> Map.insert (fromHash $ cgHash cg) cg rib ) oldRib cgs
 

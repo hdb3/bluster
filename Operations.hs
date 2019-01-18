@@ -15,6 +15,9 @@ data State = State { clusterList :: ClusterList
 clusters :: State -> [ Cluster ]
 clusters = elems . clusterList
 
+groups :: State -> [ CompositeGroup ]
+groups = elems . groupRib
+
 newState :: State
 newState = State emptyClusterList emptyGroupRib emptyPrefixRib
 
@@ -30,10 +33,11 @@ ribUpdate pl0 s = if present then error "trying to insert an existing group" els
     (tmpCluster,tmpCompositeGroup) = updateClusters clusterMap
     markedClusters = map fst clusterMap
     newBasicGroup = mkBasicGroup unmatchedPrefixList
-    newCompositeGroup = mergeCompositeGroups [tmpCompositeGroup, mkCompositeGroup [newBasicGroup]]
+    newCompositeGroup = if null unmatchedPrefixList then tmpCompositeGroup else mergeCompositeGroups [tmpCompositeGroup, mkCompositeGroup [newBasicGroup]]
+    newBasicGroups = if null unmatchedPrefixList then clBasicGroups tmpCluster else newBasicGroup : clBasicGroups tmpCluster
 
     -- build the new cluster
-    newCluster = mkCluster (newCompositeGroup : clCompositeGroups tmpCluster) (newBasicGroup : clBasicGroups tmpCluster)
+    newCluster = mkCluster (newCompositeGroup : clCompositeGroups tmpCluster) newBasicGroups
 
     -- now update the RIB state
     newClusterList = updateClusterList newCluster markedClusters (clusterList s)

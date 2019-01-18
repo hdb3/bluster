@@ -10,8 +10,12 @@ mapRu s (a:ax) = mapRu (ru a s) ax
 
 main = do
    putStrLn "Operations-test"
-   try [[1]]
+   --try [[1]]
    --try [[1,2]]
+   --try [[1],[2]]
+   try [[1],[1,2]]
+   try [[1,2],[1]]
+   --try [[1,2],[1],[2]]
    --try [[1,2] , [1,2,3] , [1,2,3,4] , [5] ]
    putStrLn "done"
 
@@ -20,4 +24,5 @@ try pfxs = do
     putStrLn ""
     putStrLn $ "input prefix groups: " ++ show pfxs
     putStrLn $ displayState s
-    print $ clusters s
+    putStrLn $ "clusters:\n" ++ ( unlines $ map show $ clusters s )
+    putStrLn $ "groups:\n" ++ ( unlines $ map show $ groups s )

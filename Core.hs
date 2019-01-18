@@ -61,8 +61,10 @@ prefixListHash pl = Hash $ Data.Hashable.hash $ sort pl
 mkBasicGroup :: PrefixList -> BasicGroup
 mkBasicGroup pl = BasicGroup (prefixListHash pl) (sort pl)
 
+-- note that the hash value in the CG is dependent ONLY on the underlying prefixes, not the structure
+-- this is important when the hash is used as the index/key for lookup in the GroupRib
 mkCompositeGroup :: [BasicGroup] -> CompositeGroup
-mkCompositeGroup bgs = CompositeGroup (Hash $ Data.Hashable.hash (sort bgs)) (sort bgs)
+mkCompositeGroup bgs = CompositeGroup (Hash $ Data.Hashable.hash (sort $ concatMap basicPrefixes bgs)) (sort bgs)
 
 mkCluster :: [CompositeGroup] -> [ BasicGroup ] -> Cluster
 --mkCluster :: PrefixList -> [CompositeGroup] -> [ BasicGroup ] -> Cluster

@@ -6,7 +6,6 @@ import Core
 import Containers
 import BasicOperations
 
---updateBasicGroups :: [BasicGroup] -> [Prefix] -> ([BasicGroup],CompositeGroup,[(BasicGroup, BasicGroup, BasicGroup)])
 
 display :: ([BasicGroup],CompositeGroup,[(BasicGroup, BasicGroup, BasicGroup)]) -> IO()
 display (newGroups , cg , editList) = do
@@ -14,8 +13,14 @@ display (newGroups , cg , editList) = do
     putStrLn $ "composite group: " ++ show cg
     putStrLn $ "edit list:       " ++ show editList
 
-main' = do
+main = do
+    putStrLn "1,2 : 2"
+    display $ updateBasicGroups [(mkBasicGroup [1,2])] [2]
+    putStrLn ""
+
+testUpdateBasicGroups = do
     putStrLn "BasicOperations-test"
+    --updateBasicGroups :: [BasicGroup] -> [Prefix] -> ([BasicGroup],CompositeGroup,[(BasicGroup, BasicGroup, BasicGroup)])
     
     -- note - the only valid inputs are those in which the prefix list and basic groups are both not null
     --        and in which the prefix list and basic groups are all disjoint
@@ -47,8 +52,9 @@ main' = do
     display $ updateBasicGroups (map mkBasicGroup [[1,2,3,4],[5,6],[7]]) [7,2,3,5]
     putStrLn ""
 
-main = do
+testUpdateCompositeGroup = do
     putStrLn "BasicOperations-test - updateCompositeGroup"
+    -- updateCompositeGroup :: [(BasicGroup,BasicGroup,BasicGroup)] -> CompositeGroup -> CompositeGroup
     print $ updateCompositeGroup [] ( mkCompositeGroup $ map mkBasicGroup [[1,2],[3,4]] )
     print $ updateCompositeGroup [(mkBasicGroup [1,2], mkBasicGroup [1], mkBasicGroup [2])] ( mkCompositeGroup $ map mkBasicGroup [[1,2],[3,4]] )
     print $ updateCompositeGroup [(mkBasicGroup [2,1], mkBasicGroup [1], mkBasicGroup [2])] ( mkCompositeGroup $ map mkBasicGroup [[1,2],[3,4]] )
