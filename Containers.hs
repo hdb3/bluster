@@ -7,6 +7,9 @@ import Core
 lookup :: Hash -> Map.IntMap a -> Maybe a
 lookup = Map.lookup . fromHash
 
+elems = Map.elems
+--fromList = Map.fromList
+
 type ClusterList = Map.IntMap Cluster
 type PrefixRib = Map.IntMap Hash
 type GroupRib = Map.IntMap CompositeGroup

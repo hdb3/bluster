@@ -12,6 +12,9 @@ data State = State { clusterList :: ClusterList
                    , prefixRib :: PrefixRib
                    } deriving Show
 
+clusters :: State -> [ Cluster ]
+clusters = elems . clusterList
+
 newState :: State
 newState = State emptyClusterList emptyGroupRib emptyPrefixRib
 
