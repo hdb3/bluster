@@ -9,7 +9,7 @@ groupRIBReport :: [[Int]] -> String
 groupRIBReport pfxs =
     "groupRIBReport"
     ++ "\ninput prefix groups: " ++ show (length pfxs)
-    ++ "\n" ++ ( yellow $ displayState st)
+    ++ "\n" ++ ( yellow $ basicAnalysis st)
     ++ "\n" ++ ( maybe (green "Consistency check pass") (\s -> red $ "Consistency check fail: " ++ s) (consistency st) )
     ++ "\n" ++ ( yellow $ "analysis\n" ++ analysis st)
     ++ "\nGroupRIBReport done"

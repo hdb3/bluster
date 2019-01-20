@@ -7,6 +7,36 @@ import Core
 import Containers
 import Operations
 
+basicAnalysis :: State -> String
+basicAnalysis st@State{..} =
+    "clusters: " ++ show clusterCount
+                 ++ " groups: " ++ show groupCount
+                 ++ " prefixes: " ++ show prefixCount
+                 ++ "\n"
+                 ++ "singleton prefixes: " ++ show singletonPrefixes
+                 ++ "  simple clusters: " ++ show simpleClusters 
+                 ++ "\n"
+                 ++ "acceleration factor: " ++ show accelerationFactor
+                 ++ " ( best acceleration factor: " ++ show bestAccelerationFactor
+                 ++ "  simple acceleration factor: " ++ show simpleAccelerationFactor
+                 ++ ")\n"
+    where
+    clusterCount = length clusterList
+    groupCount = length groupRib
+    prefixCount = length prefixRib
+    singletonPrefixes = length $ singletonPrefixClusters st
+    simpleClusters = length $ getSimpleClusters st
+    accelerationFactor = fromIntegral prefixCount / fromIntegral groupCount :: Float
+    bestAccelerationFactor = fromIntegral prefixCount / fromIntegral clusterCount :: Float
+    simpleAccelerationFactor = fromIntegral prefixCount / fromIntegral simpleClusters :: Float
+                       
+
+singletonPrefixClusters :: State -> [Cluster]
+singletonPrefixClusters st = filter ( (1 ==) . length . basicPrefixes . head . clBasicGroups ) (getSimpleClusters st)
+
+getSimpleClusters :: State -> [Cluster]
+getSimpleClusters st = filter ( (1 ==) . length . clBasicGroups ) (elems $ clusterList st )
+
 analysis :: State -> String
 analysis s = unlines results
     where
@@ -17,17 +47,17 @@ analysis s = unlines results
     analysis3 = clusterGroupSizeAnalysis
 
 partitionOrderAnalysis :: State -> String
-partitionOrderAnalysis State{..} = "Partition Order Analysis: " ++ showHistogram partionSizes -- show ( histogram partionSizes )
+partitionOrderAnalysis State{..} = "Partition Order Analysis: " ++ showHistogram partionSizes
     where
-    partionSizes = map ( fromIntegral . length . clBasicGroups) (elems clusterList)
+    partionSizes = map ( ((-1) +) . fromIntegral . length . clBasicGroups) (elems clusterList)
 
 clusterSizeAnalysis :: State -> String
-clusterSizeAnalysis State{..} = "Cluster Size Analysis: " ++ showHistogram clusterSizes -- show ( histogram clusterSizes )
+clusterSizeAnalysis State{..} = "Cluster Size Analysis: " ++ showHistogram clusterSizes
     where
     clusterSizes = map ( fromIntegral . length . concatMap basicPrefixes . clBasicGroups) (elems clusterList)
 
 clusterGroupSizeAnalysis :: State -> String
-clusterGroupSizeAnalysis State{..} = "Cluster Group Size Analysis: " ++ showHistogram clusterSizes -- show ( histogram clusterSizes )
+clusterGroupSizeAnalysis State{..} = "Cluster Group Size Analysis: " ++ showHistogram clusterSizes
     where
     clusterSizes = map ( fromIntegral . length . clCompositeGroups) (elems clusterList)
 
@@ -37,7 +67,7 @@ histogram = map countAndTell . group . sort
     countAndTell ax = (head ax, fromIntegral $ length ax)
 
 showHistogram :: [Int] -> String
-showHistogram tx = show ( histogram tx ) ++ "\n" ++ show (showPercentiles [75,90,99] tx ) ++ "\n\n"
+showHistogram tx = "[" ++ show (length tx) ++ "] " ++ show ( histogram tx ) ++ "\n" ++ show (showPercentiles [75,90,99] tx ) ++ "\n\n"
 -- showHistogram tx = show ( histogram tx ) ++ "\n" ++ showPercentoGram ( percentoGram $ histogram tx ) ++ "\n\n"
 
 showPercentiles :: [Float] -> [a] -> [(a, Float)]
@@ -48,7 +78,6 @@ showPercentiles :: [Float] -> [a] -> [(a, Float)]
 showPercentiles percentiles vals = go 0 percentiles vals
     where
     count = length vals
-    --breaks = map (\percentile -> ceiling ( percentile / 100 * fromIntegral count)) percentiles :: [Int]
     percentileToCount percentile = ceiling ( percentile / 100 * fromIntegral count) :: Int
     go :: Int -> [Float] -> [a] -> [(a, Float)]
     go _ _ [] = []
@@ -72,4 +101,3 @@ percentoGram tx = asProportionSnd total (cumulativeSnd tx)
         go _ [] = []
         go n ((a,b):abx) = (a,b+n) : go (b+n) abx
     asProportionSnd n = map (\(a,b) -> (a, 100 * float b/n))
-    --asNegProportionSnd n = map (\(a,b) -> (a,n-b/n)

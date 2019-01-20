@@ -73,6 +73,7 @@ ribUpdate pl0 s = if present then s else State newClusterList newGroupRib newPre
             (newBasicGroups, targetCompositeGroup, editList) = updateBasicGroups bgs pl
             newCompositeGroups = updateCompositeGroups editList cgs
 
+-- displayState is mirrored and extended in Analysis.hs 
 displayState :: State -> String
 displayState State{..} = "clusters: " ++ show (length clusterList)
                        ++ " groups: " ++ show (length groupRib)
