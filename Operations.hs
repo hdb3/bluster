@@ -22,7 +22,9 @@ newState :: State
 newState = State emptyClusterList emptyGroupRib emptyPrefixRib
 
 ribUpdate :: PrefixList -> State -> State
-ribUpdate pl0 s = if present then error "trying to insert an existing group" else State newClusterList newGroupRib newPrefixRib
+-- ribUpdate pl0 s = if present then error "trying to insert an existing group" else State newClusterList newGroupRib newPrefixRib
+-- above line applicable when the calling context has the capability to lookup before attempting insert/update
+ribUpdate pl0 s = if present then s else State newClusterList newGroupRib newPrefixRib
     where
 
     -- sanity check only .....
