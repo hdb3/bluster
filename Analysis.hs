@@ -70,12 +70,12 @@ showHistogram :: [Int] -> String
 showHistogram tx = "[" ++ show (length tx) ++ "] " ++ show ( histogram tx ) ++ "\n" ++ show (showPercentiles [75,90,99] tx ) ++ "\n\n"
 -- showHistogram tx = show ( histogram tx ) ++ "\n" ++ showPercentoGram ( percentoGram $ histogram tx ) ++ "\n\n"
 
-showPercentiles :: [Float] -> [a] -> [(a, Float)]
+showPercentiles :: Ord a => [Float] -> [a] -> [(a, Float)]
 -- 
 -- show the first 'a' for which the cumulative count exceeds a specific percentage of all 'a's
 --
 -- start by counting the totals and then the corresponding (Int) values which must be met or exceeded to trigger a note
-showPercentiles percentiles vals = go 0 percentiles vals
+showPercentiles percentiles vals = go 0 percentiles (sort vals)
     where
     count = length vals
     percentileToCount percentile = ceiling ( percentile / 100 * fromIntegral count) :: Int
