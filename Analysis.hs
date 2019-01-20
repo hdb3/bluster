@@ -37,22 +37,24 @@ histogram = map countAndTell . group . sort
     countAndTell ax = (head ax, fromIntegral $ length ax)
 
 showHistogram :: [Int] -> String
-showHistogram tx = show ( histogram tx ) ++ "\n" ++ showPercentoGram ( percentoGram $ histogram tx ) ++ "\n\n"
+showHistogram tx = show ( histogram tx ) ++ "\n" ++ show (showPercentiles [75,90,99] tx ) ++ "\n\n"
+-- showHistogram tx = show ( histogram tx ) ++ "\n" ++ showPercentoGram ( percentoGram $ histogram tx ) ++ "\n\n"
 
-showPercentiles :: [Float] -> [(a, Int)] -> [(a, Float)]
+showPercentiles :: [Float] -> [a] -> [(a, Float)]
 -- 
 -- show the first 'a' for which the cumulative count exceeds a specific percentage of all 'a's
 --
 -- start by counting the totals and then the corresponding (Int) values which must be met or exceeded to trigger a note
-showPercentiles percentiles vals = reverse $ go 0 percentiles vals
+showPercentiles percentiles vals = go 0 percentiles vals
     where
     count = length vals
     --breaks = map (\percentile -> ceiling ( percentile / 100 * fromIntegral count)) percentiles :: [Int]
-    percentileToCount percentile = ceiling ( percentile / 100 * fromIntegral count)) percentiles :: [Int]
+    percentileToCount percentile = ceiling ( percentile / 100 * fromIntegral count) :: Int
+    go :: Int -> [Float] -> [a] -> [(a, Float)]
     go _ _ [] = []
     go _ [] _ = []
     go cnt (brk:brks) (a:ax) | (percentileToCount brk) < cnt = (a,brk) : go (cnt+1) brks ax
-                             | otherwise = go res (cnt+1) (brk:brks) ax
+                             | otherwise = go (cnt+1) (brk:brks) ax
 
 showPercentoGram :: (Show a) => [(a, Float)] -> String
 showPercentoGram = concatMap showAPercentoGram
