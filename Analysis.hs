@@ -37,11 +37,26 @@ histogram = map countAndTell . group . sort
     countAndTell ax = (head ax, fromIntegral $ length ax)
 
 showHistogram :: [Int] -> String
-showHistogram tx = show ( histogram tx ) ++ "\n" ++ showPercentoGram ( percentoGram $ histogram tx )
+showHistogram tx = show ( histogram tx ) ++ "\n" ++ showPercentoGram ( percentoGram $ histogram tx ) ++ "\n\n"
+
+showPercentiles :: [Float] -> [(a, Int)] -> [(a, Float)]
+-- 
+-- show the first 'a' for which the cumulative count exceeds a specific percentage of all 'a's
+--
+-- start by counting the totals and then the corresponding (Int) values which must be met or exceeded to trigger a note
+showPercentiles percentiles vals = reverse $ go 0 percentiles vals
+    where
+    count = length vals
+    --breaks = map (\percentile -> ceiling ( percentile / 100 * fromIntegral count)) percentiles :: [Int]
+    percentileToCount percentile = ceiling ( percentile / 100 * fromIntegral count)) percentiles :: [Int]
+    go _ _ [] = []
+    go _ [] _ = []
+    go cnt (brk:brks) (a:ax) | (percentileToCount brk) < cnt = (a,brk) : go (cnt+1) brks ax
+                             | otherwise = go res (cnt+1) (brk:brks) ax
 
 showPercentoGram :: (Show a) => [(a, Float)] -> String
 showPercentoGram = concatMap showAPercentoGram
-    where showAPercentoGram (a,f) = "(" ++ show a ++ " , " ++ printf "%2.2d" f ++ ")"
+    where showAPercentoGram (a,f) = "(" ++ show a ++ " , " ++ printf "%2.2f" f ++ ")"
 
 percentoGram :: [(a, Int)] -> [(a, Float)]
 -- display a percentage take on a histogram
@@ -52,6 +67,7 @@ percentoGram tx = asProportionSnd total (cumulativeSnd tx)
     float n = fromIntegral n :: Float
     cumulativeSnd = go 0
         where
+        go _ [] = []
         go n ((a,b):abx) = (a,b+n) : go (b+n) abx
-    asProportionSnd n = map (\(a,b) -> (a,float b/n))
+    asProportionSnd n = map (\(a,b) -> (a, 100 * float b/n))
     --asNegProportionSnd n = map (\(a,b) -> (a,n-b/n)
