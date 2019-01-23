@@ -30,8 +30,8 @@ basicAnalysis st@State{..} =
     groupCount = length groupRib
     prefixCount = length prefixRib
     singletonPrefixes = length $ singletonPrefixClusters st
-    simpleClusters = ( length $ getSimpleClusters st ) - singletonPrefixes
-    simpleClusterPrefixCount = ( prefixClusterCount $ getSimpleClusters st ) - singletonPrefixes
+    simpleClusters =  length ( getSimpleClusters st ) - singletonPrefixes
+    simpleClusterPrefixCount = prefixClusterCount ( getSimpleClusters st ) - singletonPrefixes
     accelerationFactor = fromIntegral prefixCount / fromIntegral groupCount :: Float
     -- bestAccelerationFactor = fromIntegral prefixCount / fromIntegral clusterCount :: Float
     -- simpleAccelerationFactor = fromIntegral prefixCount / fromIntegral simpleClusters :: Float
@@ -93,7 +93,7 @@ showPercentiles percentiles vals = go 0 percentiles (sort vals)
     go :: Int -> [Float] -> [a] -> [(a, Float)]
     go _ _ [] = []
     go _ [] _ = []
-    go cnt (brk:brks) (a:ax) | (percentileToCount brk) < cnt = (a,brk) : go (cnt+1) brks ax
+    go cnt (brk:brks) (a:ax) | percentileToCount brk < cnt = (a,brk) : go (cnt+1) brks ax
                              | otherwise = go (cnt+1) (brk:brks) ax
 
 showPercentoGram :: (Show a) => [(a, Float)] -> String

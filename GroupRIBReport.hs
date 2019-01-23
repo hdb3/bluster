@@ -13,7 +13,7 @@ simpleGroupRIBReport pfxs =
     ++ "\ninput prefix groups: " ++ show (length pfxs)
     -- ++ "\n" ++ ( maybe (green "Consistency check pass") (\s -> red $ "Consistency check fail: " ++ s) (consistency st) )
     -- couls leave colur in if writing to stderr
-    ++ "\n" ++ ( maybe (basicAnalysis st) (\s -> "Consistency check fail: " ++ s) (consistency st) )
+    ++ "\n" ++ maybe (basicAnalysis st) (\s -> "Consistency check fail: " ++ s) (consistency st)
     ++ "\nGroupRIBReport done"
     where
         st = mapRu newState pfxs
@@ -24,9 +24,9 @@ groupRIBReport :: [[Int]] -> String
 groupRIBReport pfxs =
     "groupRIBReport"
     ++ "\ninput prefix groups: " ++ show (length pfxs)
-    ++ "\n" ++ ( yellow $ basicAnalysis st)
-    ++ "\n" ++ ( maybe (green "Consistency check pass") (\s -> red $ "Consistency check fail: " ++ s) (consistency st) )
-    ++ "\n" ++ ( yellow $ "analysis\n" ++ analysis st)
+    ++ "\n" ++ yellow ( basicAnalysis st)
+    ++ "\n" ++ maybe (green "Consistency check pass") (\s -> red $ "Consistency check fail: " ++ s) (consistency st)
+    ++ "\n" ++ yellow ( "analysis\n" ++ analysis st)
     ++ "\nGroupRIBReport done"
 
     where
