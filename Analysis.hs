@@ -16,13 +16,16 @@ basicAnalysis st@State{..} =
                  ++ "singleton prefixes: " ++ show singletonPrefixes
                  ++ "  simple clusters: " ++ show simpleClusters 
                  ++ "  (prefixes: " ++ show simpleClusterPrefixCount
-                 ++ ") % simple/single = " ++ show (100.0 * fromIntegral (simpleClusterPrefixCount+singletonPrefixes) / fromIntegral prefixCount)
+                 ++ "  avg size: " ++ showF (fromIntegral simpleClusterPrefixCount/fromIntegral simpleClusters)
+                 ++ ") % simple/single = " ++ showF (100.0 * fromIntegral (simpleClusterPrefixCount+singletonPrefixes) / fromIntegral prefixCount)
                  ++ "%\n"
-                 ++ "acceleration factor: " ++ show accelerationFactor
+                 ++ "acceleration factor: " ++ showF accelerationFactor
                  -- ++ " ( best acceleration factor: " ++ show bestAccelerationFactor
                  -- ++ "  simple acceleration factor: " ++ show simpleAccelerationFactor
                  ++ ")\n"
     where
+    showF :: Float -> String
+    showF f = printf "%2.2f" f
     clusterCount = length clusterList
     groupCount = length groupRib
     prefixCount = length prefixRib
