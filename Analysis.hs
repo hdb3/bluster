@@ -15,22 +15,30 @@ basicAnalysis st@State{..} =
                  ++ "\n"
                  ++ "singleton prefixes: " ++ show singletonPrefixes
                  ++ "  simple clusters: " ++ show simpleClusters 
-                 ++ "\n"
+                 ++ "  (prefixes: " ++ show simpleClusterPrefixCount
+                 ++ ") % simple/single = " ++ show (100.0 * fromIntegral (simpleClusterPrefixCount+singletonPrefixes) / fromIntegral prefixCount)
+                 ++ "%\n"
                  ++ "acceleration factor: " ++ show accelerationFactor
-                 ++ " ( best acceleration factor: " ++ show bestAccelerationFactor
-                 ++ "  simple acceleration factor: " ++ show simpleAccelerationFactor
+                 -- ++ " ( best acceleration factor: " ++ show bestAccelerationFactor
+                 -- ++ "  simple acceleration factor: " ++ show simpleAccelerationFactor
                  ++ ")\n"
     where
     clusterCount = length clusterList
     groupCount = length groupRib
     prefixCount = length prefixRib
     singletonPrefixes = length $ singletonPrefixClusters st
-    simpleClusters = length $ getSimpleClusters st
+    simpleClusters = ( length $ getSimpleClusters st ) - singletonPrefixes
+    simpleClusterPrefixCount = ( prefixClusterCount $ getSimpleClusters st ) - singletonPrefixes
     accelerationFactor = fromIntegral prefixCount / fromIntegral groupCount :: Float
-    bestAccelerationFactor = fromIntegral prefixCount / fromIntegral clusterCount :: Float
-    simpleAccelerationFactor = fromIntegral prefixCount / fromIntegral simpleClusters :: Float
+    -- bestAccelerationFactor = fromIntegral prefixCount / fromIntegral clusterCount :: Float
+    -- simpleAccelerationFactor = fromIntegral prefixCount / fromIntegral simpleClusters :: Float
                        
 
+prefixClusterCount :: [Cluster] -> Int
+prefixClusterCount = sum . map countPrefixes
+    where
+    countPrefixes = length . concatMap basicPrefixes . clBasicGroups
+ 
 singletonPrefixClusters :: State -> [Cluster]
 singletonPrefixClusters st = filter ( (1 ==) . length . basicPrefixes . head . clBasicGroups ) (getSimpleClusters st)
 
